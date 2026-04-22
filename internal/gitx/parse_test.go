@@ -52,3 +52,31 @@ func TestParseSubmoduleStatus(t *testing.T) {
 		t.Fatalf("unexpected submodule path: %q", submodules[0].DisplayPath)
 	}
 }
+
+func TestParseGitDirPointer(t *testing.T) {
+	got, err := ParseGitDirPointer("gitdir: /tmp/repo/.git/worktrees/feature\n")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != "/tmp/repo/.git/worktrees/feature" {
+		t.Fatalf("unexpected gitdir: %q", got)
+	}
+}
+
+func TestParseGitDirPointerRejectsInvalid(t *testing.T) {
+	if _, err := ParseGitDirPointer("nope"); err == nil {
+		t.Fatalf("expected invalid pointer to fail")
+	}
+}
+
+func TestParseDisplayPath(t *testing.T) {
+	if got := ParseDisplayPath("/src", "/src/github.com/puria/minos"); got != "github.com/puria/minos" {
+		t.Fatalf("unexpected display path: %q", got)
+	}
+}
+
+func TestParseDisplayPathFallsBackForOutsideRoot(t *testing.T) {
+	if got := ParseDisplayPath("/src", "/tmp/repo"); got != "/tmp/repo" {
+		t.Fatalf("expected fallback path, got %q", got)
+	}
+}

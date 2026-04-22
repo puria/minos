@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  COVERAGE_MIN: "40"
+  COVERAGE_MIN: "80"
   ACTIONS_COVERAGE_MIN: "80"
 
 jobs:

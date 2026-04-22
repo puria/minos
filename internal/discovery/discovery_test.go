@@ -1,12 +1,27 @@
 package discovery
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
+	"github.com/puria/minos/internal/config"
 	"github.com/puria/minos/internal/gitx"
 )
+
+type fakeInspector struct {
+	repos map[string]gitx.Repo
+	errs  map[string]error
+}
+
+func (f fakeInspector) Inspect(_ context.Context, root string, repoPath string, opts gitx.InspectOptions) (gitx.Repo, error) {
+	if err := f.errs[repoPath]; err != nil {
+		return gitx.Repo{}, err
+	}
+	return f.repos[repoPath], nil
+}
 
 func TestDiscoverCandidatesDedupesLinkedWorktrees(t *testing.T) {
 	root := t.TempDir()
@@ -56,5 +71,43 @@ func TestFilterSubmoduleRepos(t *testing.T) {
 	}
 	if filtered[0].CanonicalPath != "/src/parent" {
 		t.Fatalf("unexpected repo retained: %s", filtered[0].CanonicalPath)
+	}
+}
+
+func TestNewScannerAndScan(t *testing.T) {
+	root := t.TempDir()
+	repoA := filepath.Join(root, "a")
+	repoB := filepath.Join(root, "b")
+	for _, repo := range []string{repoA, repoB} {
+		if err := os.MkdirAll(filepath.Join(repo, ".git"), 0o755); err != nil {
+			t.Fatalf("mkdir .git: %v", err)
+		}
+	}
+	scanner := NewScanner(fakeInspector{
+		repos: map[string]gitx.Repo{
+			repoA: {CanonicalPath: repoA, DisplayPath: "b"},
+		},
+		errs: map[string]error{
+			repoB: os.ErrNotExist,
+		},
+	})
+	repos, err := scanner.Scan(context.Background(), config.Config{
+		Root:                                root,
+		GitWorkers:                          2,
+		SafeRemoveRequiresNoExtraBranches:   true,
+		SafeRemoveRequiresNoLinkedWorktrees: true,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(repos) != 2 {
+		t.Fatalf("expected 2 repos, got %d", len(repos))
+	}
+	displayPaths := []string{repos[0].DisplayPath, repos[1].DisplayPath}
+	if !sort.StringsAreSorted(displayPaths) {
+		t.Fatalf("expected repos sorted by display path: %#v", displayPaths)
+	}
+	if len(repos[0].Errors)+len(repos[1].Errors) == 0 {
+		t.Fatalf("expected one repo to carry inspect error")
 	}
 }

@@ -37,3 +37,52 @@ func TestBuildEntitiesIncludesSubmodules(t *testing.T) {
 		t.Fatalf("unexpected entities: %#v", rows)
 	}
 }
+
+func TestSortModeStringAndNextSortMode(t *testing.T) {
+	cases := []struct {
+		mode SortMode
+		want string
+		next SortMode
+	}{
+		{SortPath, "path", SortDirtyFirst},
+		{SortDirtyFirst, "dirty", SortStashesFirst},
+		{SortStashesFirst, "stashes", SortWorktreesFirst},
+		{SortWorktreesFirst, "worktrees", SortPath},
+	}
+	for _, tc := range cases {
+		if got := tc.mode.String(); got != tc.want {
+			t.Fatalf("unexpected string for %v: %q", tc.mode, got)
+		}
+		if got := NextSortMode(tc.mode); got != tc.next {
+			t.Fatalf("unexpected next mode for %v: %v", tc.mode, got)
+		}
+	}
+}
+
+func TestFilterAndSortShowSafeOnlyAndFilter(t *testing.T) {
+	repos := []gitx.Repo{
+		{DisplayPath: "a", DefaultBranch: "main", Summary: gitx.RepoSummary{SafeToRemove: false}},
+		{DisplayPath: "b", DefaultBranch: "feat/test", Summary: gitx.RepoSummary{SafeToRemove: true}},
+	}
+	indexes := FilterAndSort(repos, "feat", SortPath, false, true)
+	if len(indexes) != 1 || indexes[0] != 1 {
+		t.Fatalf("unexpected filtering: %#v", indexes)
+	}
+}
+
+func TestFilterAndSortWorktreesFirst(t *testing.T) {
+	repos := []gitx.Repo{
+		{DisplayPath: "a", Summary: gitx.RepoSummary{LinkedWorktreeCount: 1}},
+		{DisplayPath: "b", Summary: gitx.RepoSummary{LinkedWorktreeCount: 3}},
+	}
+	indexes := FilterAndSort(repos, "", SortWorktreesFirst, false, false)
+	if len(indexes) != 2 || indexes[0] != 1 {
+		t.Fatalf("unexpected ordering: %#v", indexes)
+	}
+}
+
+func TestBuildEntitiesNilRepo(t *testing.T) {
+	if rows := BuildEntities(nil); rows != nil {
+		t.Fatalf("expected nil rows, got %#v", rows)
+	}
+}
