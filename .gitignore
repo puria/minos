@@ -1,3 +1,4 @@
-minos
-coverage.out
-.codex
+/minos
+/bin/
+/coverage.out
+/.codex
