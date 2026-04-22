@@ -107,14 +107,14 @@ worktree %s
 HEAD def
 branch refs/heads/feature
 `, repoPath, featurePath)},
-			runnerKey(repoPath, "git", "status", "--short", "--branch"):          {out: "## main\n"},
-			runnerKey(featurePath, "git", "status", "--short", "--branch"):       {out: "## feature\n?? new.txt\n M file.go\n"},
+			runnerKey(repoPath, "git", "status", "--short", "--branch"):    {out: "## main\n"},
+			runnerKey(featurePath, "git", "status", "--short", "--branch"): {out: "## feature\n?? new.txt\n M file.go\n"},
 			runnerKey(repoPath, "git", "for-each-ref", "--format=%(refname:short)\t%(upstream:short)\t%(upstream:track)\t%(committerdate:short)\t%(contents:subject)", "refs/heads"): {out: "main\torigin/main\t\t2026-04-23\tmain work\nfeature\torigin/feature\t[ahead 2, behind 1]\t2026-04-22\tfeature work\n"},
-			runnerKey(repoPath, "git", "stash", "list", "--format=%gd\t%gs"):     {out: "stash@{0}\tWIP feature\n"},
-			runnerKey(repoPath, "git", "submodule", "status"):                    {out: " a751f3d3da4b7db830612322a068a18379c78d09 test/bats (v1.11.0)\n"},
+			runnerKey(repoPath, "git", "stash", "list", "--format=%gd\t%gs"):                      {out: "stash@{0}\tWIP feature\n"},
+			runnerKey(repoPath, "git", "submodule", "status"):                                     {out: " a751f3d3da4b7db830612322a068a18379c78d09 test/bats (v1.11.0)\n"},
 			runnerKey(repoPath, "git", "branch", "--format=%(refname:short)", "--merged", "main"): {out: "main\nfeature\n"},
-			runnerKey(submodulePath, "git", "status", "--short", "--branch"):     {out: "## main\n?? generated.txt\n"},
-			runnerKey(submodulePath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"): {out: "main\n"},
+			runnerKey(submodulePath, "git", "status", "--short", "--branch"):                      {out: "## main\n?? generated.txt\n"},
+			runnerKey(submodulePath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"):         {out: "main\n"},
 		},
 	}
 
@@ -179,8 +179,8 @@ func TestDetectDefaultBranchFallsBackToMainAndFirstHead(t *testing.T) {
 	repoPath := t.TempDir()
 	runner := &inspectorRunner{
 		responses: map[string]runnerResponse{
-			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"): {err: errors.New("missing origin head")},
-			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"):          {err: errors.New("detached")},
+			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"):     {err: errors.New("missing origin head")},
+			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"):              {err: errors.New("detached")},
 			runnerKey(repoPath, "git", "for-each-ref", "--format=%(refname:short)", "refs/heads"): {out: "topic\nmain\n"},
 		},
 	}
@@ -200,8 +200,8 @@ func TestDetectDefaultBranchPropagatesHeadLookupError(t *testing.T) {
 	repoPath := t.TempDir()
 	runner := &inspectorRunner{
 		responses: map[string]runnerResponse{
-			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"): {err: errors.New("missing origin head")},
-			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"):          {err: errors.New("detached")},
+			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"):     {err: errors.New("missing origin head")},
+			runnerKey(repoPath, "git", "symbolic-ref", "--quiet", "--short", "HEAD"):              {err: errors.New("detached")},
 			runnerKey(repoPath, "git", "for-each-ref", "--format=%(refname:short)", "refs/heads"): {err: errors.New("boom")},
 		},
 	}
