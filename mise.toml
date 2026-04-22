@@ -1,0 +1,6 @@
+[tools]
+go = "latest"
+task = "latest"
+golangci-lint = "latest"
+goreleaser = "2"
+"go:golang.org/x/vuln/cmd/govulncheck" = "latest"
