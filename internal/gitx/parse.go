@@ -20,6 +20,9 @@ func ParseWorktreePorcelain(out string, mainPath string) ([]Worktree, error) {
 		scanner := bufio.NewScanner(strings.NewReader(block))
 		for scanner.Scan() {
 			line := scanner.Text()
+			if strings.HasPrefix(line, "prunable ") {
+				continue
+			}
 			switch {
 			case strings.HasPrefix(line, "worktree "):
 				wt.Path = strings.TrimSpace(strings.TrimPrefix(line, "worktree "))
@@ -31,7 +34,6 @@ func ParseWorktreePorcelain(out string, mainPath string) ([]Worktree, error) {
 			case strings.TrimSpace(line) == "bare":
 			case strings.TrimSpace(line) == "detached":
 			case strings.TrimSpace(line) == "locked":
-			case strings.HasPrefix(line, "prunable "):
 			}
 		}
 		if err := scanner.Err(); err != nil {

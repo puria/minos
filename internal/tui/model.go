@@ -92,14 +92,14 @@ type model struct {
 }
 
 func Run(cfg config.Config, version string) error {
-	runner := gitx.ExecRunner{}
-	m := newModel(cfg, runner, version)
+	m := newModel(cfg, version)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	_, err := p.Run()
 	return err
 }
 
-func newModel(cfg config.Config, runner gitx.Runner, version string) model {
+func newModel(cfg config.Config, version string) model {
+	runner := gitx.ExecRunner{}
 	filterInput := textinput.New()
 	filterInput.Prompt = "filter> "
 	filterInput.CharLimit = 256
@@ -482,7 +482,7 @@ func (m *model) move(delta int) {
 		if len(m.filtered) == 0 {
 			return
 		}
-		m.repoIndex = clamp(m.repoIndex+delta, 0, len(m.filtered)-1)
+		m.repoIndex = clamp(m.repoIndex+delta, len(m.filtered)-1)
 		m.repoOffset = ensureVisible(m.repoIndex, m.repoOffset, listVisibleRows(max(8, m.height-4)))
 		m.entityIndex = 0
 		m.entityOffset = 0
@@ -491,13 +491,13 @@ func (m *model) move(delta int) {
 		if len(entities) == 0 {
 			return
 		}
-		m.entityIndex = clamp(m.entityIndex+delta, 0, len(entities)-1)
+		m.entityIndex = clamp(m.entityIndex+delta, len(entities)-1)
 		m.entityOffset = ensureVisible(m.entityIndex, m.entityOffset, listVisibleRows(max(8, m.height-4)))
 	case paneStatus:
 		if delta < 0 {
-			m.viewport.LineUp(1)
+			m.viewport.ScrollUp(1)
 		} else {
-			m.viewport.LineDown(1)
+			m.viewport.ScrollDown(1)
 		}
 	}
 }
@@ -512,14 +512,14 @@ func (m *model) applyFilter() {
 		m.refreshViewport()
 		return
 	}
-	m.repoIndex = clamp(m.repoIndex, 0, len(m.filtered)-1)
+	m.repoIndex = clamp(m.repoIndex, len(m.filtered)-1)
 	m.repoOffset = ensureVisible(m.repoIndex, 0, listVisibleRows(max(8, m.height-4)))
 	entities := m.entities()
 	if len(entities) == 0 {
 		m.entityIndex = 0
 		m.entityOffset = 0
 	} else {
-		m.entityIndex = clamp(m.entityIndex, 0, len(entities)-1)
+		m.entityIndex = clamp(m.entityIndex, len(entities)-1)
 		m.entityOffset = ensureVisible(m.entityIndex, 0, listVisibleRows(max(8, m.height-4)))
 	}
 	m.refreshViewport()
@@ -551,7 +551,7 @@ func (m *model) restoreSelection() {
 			}
 		}
 	}
-	m.repoIndex = clamp(m.repoIndex, 0, len(m.filtered)-1)
+	m.repoIndex = clamp(m.repoIndex, len(m.filtered)-1)
 	m.repoOffset = ensureVisible(m.repoIndex, m.repoOffset, listVisibleRows(max(8, m.height-4)))
 }
 
@@ -808,9 +808,9 @@ func repoListLine(prefix string, repo gitx.Repo, styles render.Styles, width int
 	return padRight(left, leftWidth) + " " + badges
 }
 
-func clamp(v int, low int, high int) int {
-	if v < low {
-		return low
+func clamp(v int, high int) int {
+	if v < 0 {
+		return 0
 	}
 	if v > high {
 		return high
@@ -846,7 +846,7 @@ func listWindow(total int, selected int, offset int, visible int) (start int, en
 	if total <= 0 || visible <= 0 {
 		return 0, 0, 0
 	}
-	selected = clamp(selected, 0, total-1)
+	selected = clamp(selected, total-1)
 	offset = ensureVisible(selected, offset, visible)
 	if offset > total-visible {
 		offset = max(0, total-visible)

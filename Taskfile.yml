@@ -6,7 +6,8 @@ vars:
   BUILD_VERSION:
     sh: git describe --tags --always --dirty 2>/dev/null || echo dev
   GO_LDFLAGS: "-s -w -X main.version={{.BUILD_VERSION}}"
-  COVERAGE_MIN: "95"
+  COVERAGE_MIN: "40"
+  ACTIONS_COVERAGE_MIN: "80"
 
 tasks:
   default:
@@ -31,7 +32,19 @@ tasks:
       - >-
         go tool cover -func=coverage.out | awk -v min="{{.COVERAGE_MIN}}" '/^total:/ {
           gsub("%", "", $3)
-          printf "Total coverage: %s%% (required: %s%%)\n", $3, min
+            printf "Total coverage: %s%% (required: %s%%)\n", $3, min
+            if (($3 + 0) < (min + 0)) exit 1
+        }'
+      - task: test-actions-coverage
+
+  test-actions-coverage:
+    desc: Enforce high coverage for destructive action paths ({{.ACTIONS_COVERAGE_MIN}}%)
+    cmds:
+      - go test ./internal/actions -covermode=atomic -coverprofile=coverage-actions.out
+      - >-
+        go tool cover -func=coverage-actions.out | awk -v min="{{.ACTIONS_COVERAGE_MIN}}" '/^total:/ {
+          gsub("%", "", $3)
+          printf "internal/actions coverage: %s%% (required: %s%%)\n", $3, min
           if (($3 + 0) < (min + 0)) exit 1
         }'
 

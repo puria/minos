@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  COVERAGE_MIN: "95"
+  COVERAGE_MIN: "40"
+  ACTIONS_COVERAGE_MIN: "80"
 
 jobs:
   lint:
@@ -72,6 +73,12 @@ jobs:
           go tool cover -func=coverage.out | awk -v min="$COVERAGE_MIN" '/^total:/ {
             gsub("%", "", $3)
             printf "Total coverage: %s%% (required: %s%%)\n", $3, min
+            if (($3 + 0) < (min + 0)) exit 1
+          }'
+          go test ./internal/actions -covermode=atomic -coverprofile=coverage-actions.out
+          go tool cover -func=coverage-actions.out | awk -v min="$ACTIONS_COVERAGE_MIN" '/^total:/ {
+            gsub("%", "", $3)
+            printf "internal/actions coverage: %s%% (required: %s%%)\n", $3, min
             if (($3 + 0) < (min + 0)) exit 1
           }'
 

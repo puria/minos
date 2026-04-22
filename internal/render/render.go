@@ -102,14 +102,12 @@ func EntityRow(repo gitx.Repo, entity uitypes.EntityRow) string {
 		return fmt.Sprintf("WT  %-18s %-12s %s", wt.DisplayLabel, branch, state)
 	case uitypes.EntityBranch:
 		br := repo.Branches[entity.Index]
-		tracking := ""
+		tracking := " ="
 		switch {
 		case br.Upstream == "":
 			tracking = " no-upstream"
 		case br.Ahead > 0 || br.Behind > 0:
 			tracking = fmt.Sprintf(" ↑%d ↓%d", br.Ahead, br.Behind)
-		default:
-			tracking = " ="
 		}
 		if br.CheckedOut {
 			tracking += " current"

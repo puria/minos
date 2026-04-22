@@ -107,6 +107,7 @@ When `a` is pressed on a selected worktree, the app sends a compact Git context 
 - `task build`
 - `task run`
 - `task test`
+- `task test-actions-coverage`
 - `task lint`
 - `task vuln`
 

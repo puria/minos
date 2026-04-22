@@ -14,7 +14,7 @@ import (
 )
 
 func TestSelectionMovesAcrossRepos(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.repos = []gitx.Repo{
 		{DisplayPath: "a"},
 		{DisplayPath: "b"},
@@ -27,7 +27,7 @@ func TestSelectionMovesAcrossRepos(t *testing.T) {
 }
 
 func TestRepoSelectionScrollsVisibleWindow(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.height = 12
 	for i := 0; i < 20; i++ {
 		m.repos = append(m.repos, gitx.Repo{DisplayPath: "repo"})
@@ -52,7 +52,7 @@ func TestListWindowKeepsSelectionVisible(t *testing.T) {
 }
 
 func TestRestoreSelectionByPath(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.height = 12
 	m.repos = []gitx.Repo{
 		{CanonicalPath: "/tmp/a", DisplayPath: "a"},
@@ -68,7 +68,7 @@ func TestRestoreSelectionByPath(t *testing.T) {
 }
 
 func TestRenderConfirmationShowsShadowedBox(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.width = 80
 	m.height = 24
 	m.pending = &actions.PendingAction{Prompt: "Delete directory /tmp/repo ?"}
@@ -79,7 +79,7 @@ func TestRenderConfirmationShowsShadowedBox(t *testing.T) {
 }
 
 func TestRenderBaseViewFitsTerminalHeight(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.width = 100
 	m.height = 20
 	m.showHelp = true
@@ -92,7 +92,7 @@ func TestRenderBaseViewFitsTerminalHeight(t *testing.T) {
 }
 
 func TestRenderBaseViewShowsVersionInFooter(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "v1.2.3")
+	m := newModel(config.Config{Root: "/tmp"}, "v1.2.3")
 	m.width = 100
 	m.height = 20
 	m.repos = []gitx.Repo{{CanonicalPath: "/tmp/a", DisplayPath: "a"}}
@@ -114,7 +114,7 @@ func TestFitLineTruncatesLongRepoNames(t *testing.T) {
 }
 
 func TestMoveRepoRefreshesStatusPane(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.repos = []gitx.Repo{
 		{
 			CanonicalPath: "/tmp/a",
@@ -140,7 +140,7 @@ func TestMoveRepoRefreshesStatusPane(t *testing.T) {
 }
 
 func TestToggleRepoSelection(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.focus = paneRepos
 	m.repos = []gitx.Repo{
 		{CanonicalPath: "/tmp/a", DisplayPath: "a"},
@@ -196,7 +196,7 @@ func TestWrapViewportTextWrapsLongLines(t *testing.T) {
 }
 
 func TestQuitWithSelectionRequiresConfirmation(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.selectedRepos["/tmp/a"] = struct{}{}
 	updated, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
 	next := updated.(model)
@@ -209,7 +209,7 @@ func TestQuitWithSelectionRequiresConfirmation(t *testing.T) {
 }
 
 func TestBatchDeleteKeepsFailedSelections(t *testing.T) {
-	m := newModel(config.Config{Root: "/tmp"}, gitx.ExecRunner{}, "test")
+	m := newModel(config.Config{Root: "/tmp"}, "test")
 	m.pending = &actions.PendingAction{Kind: actions.DeleteRepoDirectories}
 	m.confirming = true
 	m.selectedRepos["/tmp/a"] = struct{}{}
